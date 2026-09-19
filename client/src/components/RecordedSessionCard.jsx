@@ -43,6 +43,10 @@ const RecordedSessionCard = ({ session, onPlay }) => {
               : 'brightness-[0.35] filter grayscale-[40%]'
           }`}
           loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=640&q=80';
+          }}
         />
 
         {/* Access Overlays */}

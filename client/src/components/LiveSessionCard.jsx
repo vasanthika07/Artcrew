@@ -38,12 +38,16 @@ const LiveSessionCard = ({ session }) => {
       {/* ── Thumbnail ── */}
       <div className="aspect-video overflow-hidden relative">
         <img
-          src={session.thumbnailUrl || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80'}
+          src={session.thumbnailUrl || session.mediumId?.coverImage || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80'}
           alt={session.title}
           className={`w-full h-full object-cover transition-all duration-500 ${
             hasAccess ? 'group-hover:scale-105' : 'brightness-[0.4]'
           }`}
           loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80';
+          }}
         />
 
         {/* Status */}

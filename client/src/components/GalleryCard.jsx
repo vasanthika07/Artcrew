@@ -8,10 +8,14 @@ const GalleryCard = ({ item }) => (
     aria-label={`${item.title}${item.artist ? ` by ${item.artist}` : ''}${item.mediumId?.name ? `, ${item.mediumId.name}` : ''}`}
   >
     <img
-      src={item.imageUrl}
+      src={item.imageUrl || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600'}
       alt={item.title}
       className="w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-spring"
       loading="lazy"
+      onError={(e) => {
+        e.target.onerror = null;
+        e.target.src = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600';
+      }}
     />
 
     {/* Hover overlay */}

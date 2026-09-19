@@ -55,9 +55,13 @@ services:
       - key: MUX_TOKEN_SECRET
         sync: false
 
-      # CORS - Replace with your deployed frontend URL (e.g. Vercel/Netlify URL)
+      # Server URL
+      - key: SERVER_URL
+        value: https://artcrew-backend-9h27.onrender.com
+
+      # CORS - Production Frontend URL
       - key: CLIENT_URL
-        sync: false           # e.g. https://artcrew.vercel.app
+        value: https://artcrew.vercel.app
 
       # Rate Limiting
       - key: RATE_LIMIT_WINDOW_MS

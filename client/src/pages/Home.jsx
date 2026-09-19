@@ -98,9 +98,13 @@ const Home = () => {
         {/* Right image panel (xl+) */}
         <div className="absolute right-0 top-0 bottom-0 w-[42%] hidden xl:block" aria-hidden="true">
           <img
-            src="https://images.unsplash.com/photo-1579762593217-7b5d5d8e0a89?w=900&q=90"
+            src="/images/heroes/hero-art.jpg"
             alt=""
             className="w-full h-full object-cover opacity-20"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://images.unsplash.com/photo-1579762593217-7b5d5d8e0a89?w=900&q=90';
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950 via-charcoal-950/70 to-transparent" />
         </div>

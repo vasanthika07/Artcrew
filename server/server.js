@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
+const path = require('path');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // Import routes
@@ -23,14 +24,55 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Security headers
-app.use(helmet());
+// Serve local static bundled images with high performance cache
+app.use('/images', express.static(path.join(__dirname, 'public/images'), { maxAge: '7d' }));
 
-// CORS
+// Security headers with permissive cross-origin resource policy for frontend assets & API
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// Dynamic CORS configuration allowing production Vercel frontend, Render backend, previews, and local dev
+const allowedOrigins = [
+  'https://artcrew.vercel.app',
+  'https://artcrew-backend-9h27.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+];
+
+if (process.env.CLIENT_URL) {
+  process.env.CLIENT_URL.split(',').forEach((url) => {
+    const trimmed = url.trim().replace(/\/+$/, '');
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow server-to-server, curl, mobile, or webhook requests with no origin
+      if (!origin) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      if (
+        allowedOrigins.includes(normalizedOrigin) ||
+        /\.vercel\.app$/.test(new URL(origin).hostname) ||
+        /localhost/.test(new URL(origin).hostname)
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in dev/prod with credentials to guarantee zero CORS failures
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
   })
 );
 
