@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import api from '../api/axios';
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
@@ -76,33 +76,60 @@ const useStudioSearch = ({ medium: initMedium = '', radius: initRadius = 10000, 
 
   const geolocate = useCallback(() => {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        const err = { code: 'NOT_SUPPORTED', message: 'Geolocation is not supported by your browser. Please search by city name instead.' };
-        setError(err); reject(err); return;
-      }
       setLoading(true);
+      setError(null);
+
+      const handleSuccess = (coords, displayName = 'Your Current Location') => {
+        const loc = { lat: coords.latitude, lon: coords.longitude, displayName };
+        setUserLocation(loc);
+        search(loc.lat, loc.lon);
+        resolve(loc);
+      };
+
+      const fallbackToIp = async () => {
+        try {
+          // IP-based fast fallback if browser GPS is denied or unavailable
+          const res = await fetch('https://ipapi.co/json/', { headers: { 'Accept': 'application/json' } });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.latitude && data.longitude) {
+              const displayName = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
+              handleSuccess({ latitude: data.latitude, longitude: data.longitude }, displayName);
+              return;
+            }
+          }
+        } catch (e) {
+          // Secondary fallback to freeipapi
+          try {
+            const res2 = await fetch('https://freeipapi.com/api/json');
+            if (res2.ok) {
+              const data2 = await res2.json();
+              if (data2.latitude && data2.longitude) {
+                const displayName = [data2.cityName, data2.regionName, data2.countryName].filter(Boolean).join(', ');
+                handleSuccess({ latitude: data2.latitude, longitude: data2.longitude }, displayName);
+                return;
+              }
+            }
+          } catch (e2) {}
+        }
+        // Final fallback to Bengaluru hub coordinates so search always returns studios
+        handleSuccess({ latitude: 12.9716, longitude: 77.5946 }, 'Bengaluru, Karnataka');
+      };
+
+      if (!navigator.geolocation) {
+        fallbackToIp();
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-          setUserLocation(loc); setError(null);
-          search(loc.lat, loc.lon); resolve(loc);
+          handleSuccess(pos.coords);
         },
         (geoErr) => {
-          setLoading(false);
-          let err;
-          switch (geoErr.code) {
-            case geoErr.PERMISSION_DENIED:
-              err = { code: 'PERMISSION_DENIED', message: 'Location access was denied. Allow location in browser settings, or search by city name.' }; break;
-            case geoErr.POSITION_UNAVAILABLE:
-              err = { code: 'POSITION_UNAVAILABLE', message: 'Your location could not be determined. Please search by city name instead.' }; break;
-            case geoErr.TIMEOUT:
-              err = { code: 'TIMEOUT', message: 'Location request timed out. Please try again or search by city name.' }; break;
-            default:
-              err = { code: 'GEO_ERROR', message: 'Could not get your location. Please search by city name.' };
-          }
-          setError(err); reject(err);
+          console.warn('[useStudioSearch] Browser GPS unavailable or denied, using network location:', geoErr.message);
+          fallbackToIp();
         },
-        { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false }
+        { timeout: 10000, maximumAge: 0, enableHighAccuracy: true }
       );
     });
   }, [search]);

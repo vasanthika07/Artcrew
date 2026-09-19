@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Navigation, Search, SlidersHorizontal, ChevronDown, MapPin, Compass } from 'lucide-react';
 import { toast } from '../components/Toast';
@@ -32,6 +32,16 @@ const Studios = () => {
 
   /* ─── Handlers ──────────────────────────────── */
 
+  const POPULAR_CITIES = [
+    { name: 'Bengaluru', lat: 12.9716, lon: 77.5946 },
+    { name: 'Mumbai', lat: 19.0760, lon: 72.8777 },
+    { name: 'Delhi NCR', lat: 28.6139, lon: 77.2090 },
+    { name: 'Hyderabad', lat: 17.3850, lon: 78.4867 },
+    { name: 'Chennai', lat: 13.0827, lon: 80.2707 },
+    { name: 'Pune', lat: 18.5204, lon: 73.8567 },
+    { name: 'Kolkata', lat: 22.5726, lon: 88.3639 },
+  ];
+
   const handleLocationSelect = useCallback(({ lat, lon, displayName }) => {
     setLocationText(displayName);
     setUserLocation({ lat, lon });
@@ -50,13 +60,26 @@ const Studios = () => {
   }, [locationText, geocodeAndSearch]);
 
   const handleGeolocate = useCallback(async () => {
-    toast.info('Getting your location…');
+    toast.info('Detecting your location…');
     try {
-      await geolocate();
+      const loc = await geolocate();
+      if (loc?.displayName) {
+        setLocationText(loc.displayName);
+        toast.success(`Location set: ${loc.displayName}`);
+      } else {
+        toast.success('Found nearby studios for your location');
+      }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || 'Could not get location. Try searching a city.');
     }
   }, [geolocate]);
+
+  const handleCityPick = useCallback((city) => {
+    setLocationText(city.name);
+    setUserLocation({ lat: city.lat, lon: city.lon });
+    search(city.lat, city.lon);
+    toast.info(`Showing studios in ${city.name}`);
+  }, [search, setUserLocation]);
 
   const handleMediumChange = useCallback((newMedium) => {
     setMedium(newMedium);
@@ -176,6 +199,23 @@ const Studios = () => {
                       via {provider === 'google' ? '🔵 Google Places' : '🗺️ OpenStreetMap'}
                     </span>
                   )}
+                </div>
+
+                {/* Quick Indian Art Hubs Chips */}
+                <div className="pt-2 border-t border-charcoal-800/60 flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] text-charcoal-400 font-medium mr-1 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-canvas-400" /> Popular:
+                  </span>
+                  {POPULAR_CITIES.map((c) => (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => handleCityPick(c)}
+                      className="text-[11px] px-2.5 py-1 rounded-full bg-charcoal-800/80 hover:bg-canvas-500/20 text-charcoal-300 hover:text-canvas-300 border border-charcoal-700/80 hover:border-canvas-500/40 transition-all cursor-pointer"
+                    >
+                      {c.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
