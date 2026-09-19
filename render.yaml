@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: artcrew-backend
+    runtime: node
+    region: singapore        # Change to: oregon | frankfurt | ohio | virginia | singapore
+    plan: free               # Change to: starter | standard | pro as needed
+    rootDir: server          # The backend lives inside /server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+
+    # Environment Variables
+    # Set sensitive values (marked sync: false) directly in the Render dashboard
+    # after the first deploy; non-sensitive defaults are inlined here.
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 10000          # Render always exposes the service on port 10000
+
+      # MongoDB
+      - key: MONGODB_URI
+        sync: false           # Set in Render dashboard -> Environment
+
+      # JWT
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 7d
+
+      # Anthropic AI
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      # Google Places (optional)
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+
+      # Razorpay
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
+      # Mux Video
+      - key: MUX_TOKEN_ID
+        sync: false
+      - key: MUX_TOKEN_SECRET
+        sync: false
+
+      # CORS - Replace with your deployed frontend URL (e.g. Vercel/Netlify URL)
+      - key: CLIENT_URL
+        sync: false           # e.g. https://artcrew.vercel.app
+
+      # Rate Limiting
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 100
