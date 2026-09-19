@@ -39,8 +39,8 @@ const RecordedSessionCard = ({ session, onPlay }) => {
           alt={session.title}
           className={`w-full h-full object-cover transition-all duration-500 ${
             hasAccess
-              ? 'group-hover:scale-105 group-hover:brightness-90'
-              : 'brightness-[0.35] filter grayscale-[40%]'
+              ? 'group-hover:scale-105 group-hover:brightness-95'
+              : 'group-hover:scale-105 brightness-95'
           }`}
           loading="lazy"
           onError={(e) => {
@@ -55,7 +55,7 @@ const RecordedSessionCard = ({ session, onPlay }) => {
             type="button"
             onClick={() => onPlay?.(session, watchProgress?.progressSeconds || 0)}
             aria-label={`Play ${session.title}`}
-            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-charcoal-950/30 cursor-pointer"
+            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-charcoal-950/20 cursor-pointer"
           >
             <div className="w-13 h-13 rounded-full bg-canvas-500 text-charcoal-950 flex items-center justify-center shadow-xl shadow-canvas-500/30 group-hover:scale-110 transition-transform">
               <Play className="w-6 h-6 ml-0.5" fill="currentColor" aria-hidden="true" />
@@ -63,14 +63,14 @@ const RecordedSessionCard = ({ session, onPlay }) => {
           </button>
         ) : (
           /* LOCKED Non-subscriber Overlay */
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-charcoal-950/70 backdrop-blur-[2px]">
-            <div className="w-11 h-11 rounded-2xl bg-charcoal-900/90 border border-charcoal-700 flex items-center justify-center mb-2 shadow-lg">
-              <Lock className="w-5 h-5 text-canvas-400" aria-hidden="true" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-charcoal-950/25 backdrop-blur-[0.5px]">
+            <div className="w-10 h-10 rounded-2xl bg-charcoal-900/80 border border-charcoal-700/70 flex items-center justify-center mb-1.5 shadow-lg backdrop-blur-sm">
+              <Lock className="w-4 h-4 text-canvas-400" aria-hidden="true" />
             </div>
-            <p className="text-white text-xs font-bold uppercase tracking-wider mb-0.5">
+            <p className="text-white text-xs font-bold uppercase tracking-wider mb-0.5 drop-shadow-md">
               LOCKED
             </p>
-            <p className="text-charcoal-300 text-[11px]">
+            <p className="text-charcoal-200 text-[11px] font-medium drop-shadow-sm">
               Requires {TIER_LABELS[session.requiredTier] || 'Basic'}+ Plan
             </p>
           </div>

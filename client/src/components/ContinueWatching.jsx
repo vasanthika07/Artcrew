@@ -76,14 +76,14 @@ const ContinueWatching = ({ onPlay, refreshKey }) => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-charcoal-950/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/70 via-transparent to-transparent" />
 
                 {/* Center Hover Play Button */}
                 <button
                   type="button"
                   onClick={() => onPlay(rec, item.progressSeconds)}
                   aria-label={`Resume ${rec.title}`}
-                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-charcoal-950/40 cursor-pointer"
+                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-charcoal-950/20 cursor-pointer"
                 >
                   <div className="w-12 h-12 rounded-full bg-canvas-500 text-charcoal-950 flex items-center justify-center shadow-lg shadow-canvas-500/30 group-hover:scale-110 transition-transform">
                     <Play className="w-5 h-5 ml-0.5" fill="currentColor" />

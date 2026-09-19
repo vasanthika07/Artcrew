@@ -397,7 +397,7 @@
      VIDEO / STREAMING
   ══════════════════════════════════════════ */
   .locked-overlay {
-    @apply absolute inset-0 bg-charcoal-950/75 backdrop-blur-[3px] flex flex-col
+    @apply absolute inset-0 bg-charcoal-950/30 backdrop-blur-[1px] flex flex-col
     items-center justify-center gap-3;
   }
 

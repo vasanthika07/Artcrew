@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, MapPin, Palette, Play, ChevronDown, Crown, Star
+  ArrowRight, Sparkles, MapPin, Palette, Play, Pause, Volume2, VolumeX, ChevronDown, Crown, Star
 } from 'lucide-react';
 import api from '../api/axios';
 import MediumCard from '../components/MediumCard';
@@ -70,6 +70,30 @@ const Home = () => {
   const [recordings, setRecordings] = useState([]);
   const [loading,    setLoading]    = useState(true);
 
+  // Video player state
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
+
   useEffect(() => {
     Promise.all([
       api.get('/mediums').then(r => setMediums(r.data.data?.slice(0, 6) || [])),
@@ -95,85 +119,157 @@ const Home = () => {
         {/* Texture */}
         <div className="absolute inset-0 bg-hero-pattern opacity-40" aria-hidden="true" />
 
-        {/* Right image panel (xl+) */}
-        <div className="absolute right-0 top-0 bottom-0 w-[42%] hidden xl:block" aria-hidden="true">
-          <img
-            src="/images/heroes/hero-art.jpg"
-            alt=""
-            className="w-full h-full object-cover opacity-20"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://images.unsplash.com/photo-1579762593217-7b5d5d8e0a89?w=900&q=90';
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950 via-charcoal-950/70 to-transparent" />
-        </div>
+        <div className="container-art relative z-10 py-16 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
-        <div className="container-art relative z-10 py-28">
-          <div className="max-w-3xl">
+            {/* Left Content Column */}
+            <div className="lg:col-span-7 max-w-2xl">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-canvas-500/15 border border-canvas-500/25 text-canvas-300 text-xs font-semibold mb-8 animate-fade-in tracking-wide uppercase">
+                <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                India's Premier Art Discovery Platform
+              </div>
 
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-canvas-500/15 border border-canvas-500/25 text-canvas-300 text-xs font-semibold mb-8 animate-fade-in tracking-wide uppercase">
-              <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-              India's Premier Art Discovery Platform
+              {/* Headline */}
+              <h1 className="display-hero text-4xl sm:text-5xl lg:text-6xl text-white mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+                Discover Your{' '}
+                <span className="relative inline-block">
+                  <span className="gradient-text">Art Medium</span>
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full"
+                    viewBox="0 0 300 10"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 8 C80 2, 200 2, 298 8" stroke="#d4892a" strokeWidth="2.5" strokeLinecap="round" className="opacity-50" />
+                  </svg>
+                </span>
+                <br />& Find Your Studio
+              </h1>
+
+              <p className="text-charcoal-300 text-base sm:text-lg mb-8 leading-relaxed max-w-xl animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                From watercolour landscapes to pottery wheels — explore art mediums,
+                watch live masterclasses, and find studios near you. Let our AI guide your creative journey.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+                <Link to="/mediums" className="btn-primary btn-lg group">
+                  <Palette className="w-5 h-5" aria-hidden="true" />
+                  Explore Mediums
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                </Link>
+                <Link to="/studios" className="btn-white-ghost btn-lg">
+                  <MapPin className="w-5 h-5" aria-hidden="true" />
+                  Find Studios
+                </Link>
+                <Link to="/assistant" className="btn btn-lg border-2 border-canvas-500/35 text-canvas-300 hover:bg-canvas-500/12 hover:border-canvas-500/55 transition-all">
+                  <Sparkles className="w-5 h-5" aria-hidden="true" />
+                  Ask AI Advisor
+                </Link>
+              </div>
+
+              {/* Stats */}
+              <div
+                className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/10 max-w-sm animate-fade-up"
+                style={{ animationDelay: '0.4s' }}
+                aria-label="Platform statistics"
+              >
+                <Stat value="5+"   label="Art Mediums" />
+                <Stat value="50+"  label="Studios" />
+                <Stat value="100%" label="Beginner Friendly" />
+              </div>
             </div>
 
-            {/* Headline */}
-            <h1 className="display-hero text-5xl sm:text-6xl lg:text-7xl text-white mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-              Discover Your{' '}
-              <span className="relative inline-block">
-                <span className="gradient-text">Art Medium</span>
-                <svg
-                  className="absolute -bottom-2 left-0 w-full"
-                  viewBox="0 0 300 10"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path d="M2 8 C80 2, 200 2, 298 8" stroke="#d4892a" strokeWidth="2.5" strokeLinecap="round" className="opacity-50" />
-                </svg>
-              </span>
-              <br />& Find Your Studio
-            </h1>
+            {/* Right Video Showcase Column */}
+            <div className="lg:col-span-5 relative animate-fade-up" style={{ animationDelay: '0.25s' }}>
+              {/* Glowing decorative backdrop */}
+              <div className="absolute -inset-1.5 bg-gradient-to-tr from-canvas-500/30 via-terracotta-500/20 to-sage-500/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-1000 -z-10" />
 
-            <p className="text-charcoal-300 text-lg sm:text-xl mb-10 leading-relaxed max-w-xl animate-fade-up" style={{ animationDelay: '0.2s' }}>
-              From watercolour landscapes to pottery wheels — explore art mediums,
-              watch live masterclasses, and find studios near you. Let our AI guide your creative journey.
-            </p>
+              <div className="relative rounded-2xl overflow-hidden border border-white/15 bg-charcoal-900/80 shadow-2xl backdrop-blur-sm group">
+                
+                {/* Video Element */}
+                <div className="relative aspect-[9/16] sm:aspect-[4/3] lg:aspect-[4/5] max-h-[500px] w-full overflow-hidden bg-black/60 flex items-center justify-center">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover object-center"
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                  >
+                    <source src="/images/dashboard/dashboard-video.mp4" type="video/mp4" />
+                    <source src="/images/dashboard/WhatsApp Video 2026-09-19 at 23.20.19.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-3 animate-fade-up" style={{ animationDelay: '0.3s' }}>
-              <Link to="/mediums" className="btn-primary btn-lg group">
-                <Palette className="w-5 h-5" aria-hidden="true" />
-                Explore Mediums
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-              </Link>
-              <Link to="/studios" className="btn-white-ghost btn-lg">
-                <MapPin className="w-5 h-5" aria-hidden="true" />
-                Find Studios
-              </Link>
-              <Link to="/assistant" className="btn btn-lg border-2 border-canvas-500/35 text-canvas-300 hover:bg-canvas-500/12 hover:border-canvas-500/55 transition-all">
-                <Sparkles className="w-5 h-5" aria-hidden="true" />
-                Ask AI Advisor
-              </Link>
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/80 via-transparent to-charcoal-950/40 pointer-events-none" />
+
+                  {/* Header Tag / Live indicator */}
+                  <div className="absolute top-3.5 left-3.5 flex items-center gap-2 px-3 py-1 rounded-full bg-charcoal-950/60 backdrop-blur-md border border-white/10 text-white text-xs font-medium">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Featured Studio Tour</span>
+                  </div>
+
+                  {/* Video Control Buttons */}
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={toggleMute}
+                      className="w-8 h-8 rounded-full bg-charcoal-950/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-canvas-500/80 transition-colors"
+                      title={isMuted ? "Unmute video" : "Mute video"}
+                      aria-label={isMuted ? "Unmute video" : "Mute video"}
+                    >
+                      {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={togglePlay}
+                      className="w-8 h-8 rounded-full bg-charcoal-950/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-canvas-500/80 transition-colors"
+                      title={isPlaying ? "Pause video" : "Play video"}
+                      aria-label={isPlaying ? "Pause video" : "Play video"}
+                    >
+                      {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+
+                  {/* Bottom Caption Bar */}
+                  <div className="absolute bottom-3 inset-x-3 p-3.5 rounded-xl bg-charcoal-950/70 backdrop-blur-md border border-white/10 flex items-center justify-between">
+                    <div>
+                      <p className="text-white text-xs font-semibold flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-canvas-400" />
+                        Explore Art Workshops & Studios
+                      </p>
+                      <p className="text-charcoal-300 text-[11px]">Discover real techniques & hands-on classes</p>
+                    </div>
+                    <Link
+                      to="/live-sessions"
+                      className="px-2.5 py-1 rounded-lg bg-canvas-500 text-white text-xs font-medium hover:bg-canvas-600 transition-colors flex items-center gap-1 shrink-0"
+                    >
+                      Join <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Floating micro-badges for visual richness */}
+              <div className="hidden sm:flex absolute -bottom-5 -left-5 bg-charcoal-900/90 border border-white/15 px-3.5 py-2 rounded-xl backdrop-blur-md shadow-xl items-center gap-2 text-xs text-white">
+                <Palette className="w-4 h-4 text-canvas-400" />
+                <span className="font-medium">Masterclass Experience</span>
+              </div>
             </div>
 
-            {/* Stats */}
-            <div
-              className="grid grid-cols-3 gap-8 mt-20 pt-8 border-t border-white/10 max-w-sm animate-fade-up"
-              style={{ animationDelay: '0.4s' }}
-              aria-label="Platform statistics"
-            >
-              <Stat value="5+"   label="Art Mediums" />
-              <Stat value="50+"  label="Studios" />
-              <Stat value="100%" label="Beginner Friendly" />
-            </div>
           </div>
         </div>
 
         {/* Scroll cue */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-charcoal-500 animate-bounce" aria-hidden="true">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-charcoal-500 animate-bounce pointer-events-none" aria-hidden="true">
           <span className="text-[10px] uppercase tracking-[0.15em]">Scroll</span>
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-3.5 h-3.5" />
         </div>
       </section>
 

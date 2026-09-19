@@ -40,9 +40,7 @@ const LiveSessionCard = ({ session }) => {
         <img
           src={session.thumbnailUrl || session.mediumId?.coverImage || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80'}
           alt={session.title}
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            hasAccess ? 'group-hover:scale-105' : 'brightness-[0.4]'
-          }`}
+          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 brightness-95"
           loading="lazy"
           onError={(e) => {
             e.target.onerror = null;
@@ -62,7 +60,7 @@ const LiveSessionCard = ({ session }) => {
         {/* Tier */}
         <div className="absolute top-3 right-3">
           <span className={`badge backdrop-blur-sm shadow-sm ${
-            hasAccess ? 'bg-sage-500 text-white' : 'bg-charcoal-950/75 text-charcoal-200'
+            hasAccess ? 'bg-sage-500 text-white' : 'bg-charcoal-950/60 text-charcoal-200'
           }`}>
             {hasAccess ? '✓ Unlocked' : `${TIER_LABELS[session.requiredTier] || 'Basic'}+`}
           </span>
@@ -71,7 +69,7 @@ const LiveSessionCard = ({ session }) => {
         {/* Lock overlay */}
         {!hasAccess && (
           <div className="locked-overlay" aria-label="Subscription required">
-            <Lock className="w-8 h-8 text-white/70" aria-hidden="true" />
+            <Lock className="w-8 h-8 text-white/90 drop-shadow-md" aria-hidden="true" />
           </div>
         )}
       </div>
