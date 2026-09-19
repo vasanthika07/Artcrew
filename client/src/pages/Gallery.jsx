@@ -113,9 +113,9 @@ const Gallery = () => {
           )}
         </div>
 
-        {/* ── Grid ── */}
+        {/* ── Grid with full mobile & mini device responsiveness ── */}
         {loading ? (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 md:gap-6">
             {[...Array(12)].map((_, i) => <SkeletonItem key={i} tall={i % 3 === 0} />)}
           </div>
         ) : error ? (
@@ -133,11 +133,11 @@ const Gallery = () => {
           />
         ) : (
           <>
-            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+            <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 md:gap-6">
               {items.map((item, i) => (
                 <div
                   key={item._id}
-                  className="break-inside-avoid mb-4 animate-fade-in"
+                  className="break-inside-avoid mb-2.5 sm:mb-4 md:mb-6 animate-fade-in"
                   style={{ animationDelay: `${Math.min(i, 7) * 50}ms` }}
                 >
                   <GalleryCard item={item} />

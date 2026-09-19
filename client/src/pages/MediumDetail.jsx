@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, CircleDollarSign, BookOpen, Package, Users, Play, MapPin } from 'lucide-react';
+import { ArrowLeft, CircleDollarSign, BookOpen, Package, Users, Play, MapPin, Sparkles, Image as ImageIcon } from 'lucide-react';
 import api from '../api/axios';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import RecordedSessionCard from '../components/RecordedSessionCard';
 import LiveSessionCard from '../components/LiveSessionCard';
+import GalleryCard from '../components/GalleryCard';
 
 const RESOURCE_ICONS = {
   guide: <BookOpen className="w-4 h-4" />,
@@ -18,12 +19,26 @@ const RESOURCE_ICONS = {
 const MediumDetail = () => {
   const { id } = useParams();
   const [medium, setMedium] = useState(null);
+  const [galleryItems, setGalleryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
     api.get(`/mediums/${id}`)
-      .then(r => setMedium(r.data.data))
+      .then(async (r) => {
+        const medData = r.data.data;
+        setMedium(medData);
+        // Fetch all community artworks for this medium
+        if (medData?._id) {
+          try {
+            const galRes = await api.get(`/gallery?medium=${medData.slug || medData._id}&limit=50`);
+            setGalleryItems(galRes.data.data || []);
+          } catch (e) {
+            setGalleryItems(medData.gallery || []);
+          }
+        }
+      })
       .catch(() => setError('Medium not found'))
       .finally(() => setLoading(false));
   }, [id]);
@@ -189,6 +204,39 @@ const MediumDetail = () => {
             </Link>
           </div>
         </div>
+
+        {/* ── Community Artworks Showcase for this Medium (20+ works) ── */}
+        {galleryItems.length > 0 && (
+          <section className="mt-16 pt-12 border-t border-charcoal-200">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <p className="eyebrow text-xs">Community Creations</p>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-charcoal-900">
+                  {medium.name} Gallery & Works
+                </h2>
+                <p className="text-charcoal-500 text-sm mt-1">
+                  Explore original works created by artists exploring {medium.name}.
+                </p>
+              </div>
+              <span className="badge bg-canvas-500/10 text-canvas-600 font-semibold text-xs px-3 py-1">
+                {galleryItems.length} works
+              </span>
+            </div>
+
+            {/* Responsive grid for all screen sizes including mini devices */}
+            <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 md:gap-6">
+              {galleryItems.map((item, i) => (
+                <div
+                  key={item._id}
+                  className="break-inside-avoid mb-2.5 sm:mb-4 md:mb-6 animate-fade-in"
+                  style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+                >
+                  <GalleryCard item={item} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
