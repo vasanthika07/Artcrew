@@ -21,7 +21,6 @@ const mediumSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-mediumSchema.index({ slug: 1 });
 mediumSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Medium', mediumSchema);

@@ -34,11 +34,14 @@ const MediumDetail = () => {
   return (
     <div className="min-h-screen bg-cream">
       {/* Hero */}
-      <div className="relative h-[50vh] min-h-[320px] overflow-hidden">
+      <div className="relative h-[50vh] min-h-[340px] overflow-hidden bg-charcoal-950">
         <img
-          src={medium.coverImage || 'https://images.unsplash.com/photo-1579762593217-7b5d5d8e0a89?w=1400'}
+          src={medium.coverImage ? `${medium.coverImage.split('?')[0]}?auto=format&fit=crop&w=1600&q=85` : 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1600&q=85'}
+          srcSet={medium.coverImage ? `${medium.coverImage.split('?')[0]}?auto=format&fit=crop&w=640&q=75 640w, ${medium.coverImage.split('?')[0]}?auto=format&fit=crop&w=1200&q=80 1200w, ${medium.coverImage.split('?')[0]}?auto=format&fit=crop&w=1800&q=85 1800w` : undefined}
+          sizes="100vw"
           alt={medium.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover animate-fade-in"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-charcoal-950/40 to-transparent" />
         <div className="absolute inset-0 flex flex-col justify-end p-8 container-art">

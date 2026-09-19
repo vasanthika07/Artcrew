@@ -1,20 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getPlans, subscribe, webhook,
-  adminGetPlans, createPlan, updatePlan, deletePlan
+  getPlans,
+  subscribe,
+  verifyPayment,
+  webhook,
+  adminGetPlans,
+  createPlan,
+  updatePlan,
+  deletePlan,
 } = require('../controllers/subscriptionController');
 const { authenticate } = require('../middleware/authenticate');
 const { requireRole } = require('../middleware/authorize');
 
 // Public
 router.get('/', getPlans);
+router.get('/plans', getPlans);
 
-// Authenticated user
+// Authenticated user checkout & server-side payment verification
 router.post('/subscribe', authenticate, subscribe);
+router.post('/checkout', authenticate, subscribe);
+router.post('/verify-payment', authenticate, verifyPayment);
 
-// Webhook — raw body needed for signature verification
-router.post('/webhook', express.raw({ type: 'application/json' }), webhook);
+// Webhook — accepts JSON body
+router.post('/webhook', webhook);
 
 // Admin
 router.get('/admin', authenticate, requireRole('admin'), adminGetPlans);

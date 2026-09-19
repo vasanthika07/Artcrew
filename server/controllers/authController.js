@@ -33,12 +33,43 @@ const signup = async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email: email.toLowerCase(), passwordHash });
+    const deviceId = req.body.deviceId || uuidv4();
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      passwordHash,
+    });
+
+    const accessToken = generateAccessToken(user._id, deviceId);
+    const refreshToken = generateRefreshToken(user._id, deviceId);
+
+    user.devices = [
+      {
+        deviceId,
+        refreshToken,
+        userAgent,
+        lastActive: new Date(),
+        createdAt: new Date(),
+      },
+    ];
+    await user.save();
 
     res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      accessToken,
+      refreshToken,
+      deviceId,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionTier: user.subscriptionTier,
+      },
     });
   } catch (error) {
     next(error);
@@ -237,11 +268,33 @@ const revokeDevice = async (req, res, next) => {
 };
 
 // GET /api/auth/me
-const getMe = async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .select('-passwordHash -devices')
-    .populate('subscriptionId', 'name slug price billingPeriod');
-  res.json({ success: true, user });
+const getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select('-passwordHash -devices')
+      .populate('subscriptionId', 'name slug price billingPeriod');
+    res.json({ success: true, data: user, user });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports = { signup, login, logout, refresh, getDevices, revokeDevice, getMe };
+// PUT /api/auth/profile
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(422).json({ success: false, message: 'Name is required' });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name },
+      { new: true }
+    ).select('-passwordHash -devices');
+    res.json({ success: true, data: user, user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { signup, login, logout, refresh, getDevices, revokeDevice, getMe, updateProfile };

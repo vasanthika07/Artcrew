@@ -1,26 +1,28 @@
 /**
  * Abstract PaymentService interface.
- * Currently implemented via Razorpay for India.
- * To switch to Stripe, create StripeProvider.js implementing the same interface.
+ * Implemented via RazorpayProvider.
  */
 
 const RazorpayProvider = require('./RazorpayProvider');
 
-// Active provider
 const provider = RazorpayProvider;
 
 /**
- * Create a subscription checkout session
- * @param {{ planId, planName, amount, currency, userId, userEmail, userName }} options
- * @returns {Promise<{ subscriptionId, shortUrl, key }>}
+ * Create a subscription checkout session / order
  */
 const createSubscription = async (options) => {
   return provider.createSubscription(options);
 };
 
 /**
+ * Verify server-side payment signature and activate subscription
+ */
+const verifyPaymentSignature = async (options) => {
+  return provider.verifyPaymentSignature(options);
+};
+
+/**
  * Handle incoming payment webhook event
- * @param {object} event
  */
 const handleWebhook = async (event) => {
   return provider.handleWebhook(event);
@@ -28,10 +30,14 @@ const handleWebhook = async (event) => {
 
 /**
  * Cancel a subscription
- * @param {string} subscriptionId
  */
 const cancelSubscription = async (subscriptionId) => {
   return provider.cancelSubscription(subscriptionId);
 };
 
-module.exports = { createSubscription, handleWebhook, cancelSubscription };
+module.exports = {
+  createSubscription,
+  verifyPaymentSignature,
+  handleWebhook,
+  cancelSubscription,
+};

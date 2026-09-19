@@ -4,14 +4,33 @@ const Medium = require('../models/Medium');
 // GET /api/gallery
 const getGallery = async (req, res, next) => {
   try {
-    const { medium, featured, page = 1, limit = 20 } = req.query;
-    const filter = { isPublished: true };
+    const { medium, featured, search, all, page = 1, limit = 50 } = req.query;
+    const filter = {};
+
+    // Only filter isPublished if not explicitly querying all items (e.g. for admin)
+    if (all !== 'true') {
+      filter.isPublished = true;
+    }
 
     if (medium && medium !== 'all') {
-      const med = await Medium.findOne({ slug: medium });
-      if (med) filter.mediumId = med._id;
+      const med = await Medium.findOne({
+        $or: [{ slug: medium }, { name: { $regex: new RegExp(`^${medium}$`, 'i') } }],
+      });
+      if (med) {
+        filter.mediumId = med._id;
+      } else if (medium.match(/^[0-9a-fA-F]{24}$/)) {
+        filter.mediumId = medium;
+      }
     }
+
     if (featured === 'true') filter.isFeatured = true;
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { artist: { $regex: search, $options: 'i' } },
+      ];
+    }
 
     const skip = (Number(page) - 1) * Number(limit);
     const [items, total] = await Promise.all([
@@ -26,7 +45,12 @@ const getGallery = async (req, res, next) => {
     res.json({
       success: true,
       data: items,
-      pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / Number(limit)) },
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / Number(limit)),
+      },
     });
   } catch (error) {
     next(error);
@@ -47,11 +71,20 @@ const getGalleryItem = async (req, res, next) => {
 // POST /api/gallery (admin)
 const createGalleryItem = async (req, res, next) => {
   try {
-    const { title, mediumId, imageUrl, description, artist, isFeatured, order } = req.body;
+    const { title, mediumId, imageUrl, description, artist, isFeatured, isPublished, order } = req.body;
     if (!title || !mediumId || !imageUrl) {
       return res.status(422).json({ success: false, message: 'Title, mediumId, and imageUrl are required' });
     }
-    const item = await GalleryItem.create({ title, mediumId, imageUrl, description, artist, isFeatured, order });
+    const item = await GalleryItem.create({
+      title,
+      mediumId,
+      imageUrl,
+      description,
+      artist,
+      isFeatured: isFeatured !== undefined ? isFeatured : false,
+      isPublished: isPublished !== undefined ? isPublished : true,
+      order: order || 0,
+    });
     await item.populate('mediumId', 'name slug');
     res.status(201).json({ success: true, data: item });
   } catch (error) {
@@ -62,8 +95,10 @@ const createGalleryItem = async (req, res, next) => {
 // PUT /api/gallery/:id (admin)
 const updateGalleryItem = async (req, res, next) => {
   try {
-    const item = await GalleryItem.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-      .populate('mediumId', 'name slug');
+    const item = await GalleryItem.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    }).populate('mediumId', 'name slug');
     if (!item) return res.status(404).json({ success: false, message: 'Gallery item not found' });
     res.json({ success: true, data: item });
   } catch (error) {
@@ -82,4 +117,10 @@ const deleteGalleryItem = async (req, res, next) => {
   }
 };
 
-module.exports = { getGallery, getGalleryItem, createGalleryItem, updateGalleryItem, deleteGalleryItem };
+module.exports = {
+  getGallery,
+  getGalleryItem,
+  createGalleryItem,
+  updateGalleryItem,
+  deleteGalleryItem,
+};

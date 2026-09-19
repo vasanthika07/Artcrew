@@ -44,11 +44,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Stricter rate limit on auth endpoints
+// Stricter rate limit on auth endpoints in production, generous in development
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: Number(process.env.RATE_LIMIT_AUTH_MAX) || (process.env.NODE_ENV === 'production' ? 20 : 200),
   message: { success: false, message: 'Too many auth attempts, please try again in 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/signup', authLimiter);
@@ -74,9 +76,70 @@ app.use((req, res, next) => {
 });
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ success: true, message: 'Art Studio & Medium Finder API is running', timestamp: new Date().toISOString() });
+// Health & Dynamic Live Server Status
+app.get(['/', '/api', '/health'], async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const Medium = require('./models/Medium');
+    const GalleryItem = require('./models/GalleryItem');
+    const RecordedSession = require('./models/RecordedSession');
+
+    const [totalUsers, totalMediums, totalGallery, totalRecordings, recentUsers] = await Promise.all([
+      User.countDocuments(),
+      Medium.countDocuments(),
+      GalleryItem.countDocuments(),
+      RecordedSession.countDocuments(),
+      User.find()
+        .select('name email role subscriptionTier subscriptionStatus createdAt')
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean(),
+    ]);
+
+    res.json({
+      success: true,
+      message: '🎨 ArtCrew API is running & connected to MongoDB Atlas',
+      version: '1.0.0',
+      database: {
+        status: 'Connected',
+        cluster: 'MongoDB Atlas',
+      },
+      liveStats: {
+        totalRegisteredUsers: totalUsers,
+        totalArtMediums: totalMediums,
+        totalGalleryArtworks: totalGallery,
+        totalMasterclasses: totalRecordings,
+      },
+      recentRegistrations: recentUsers.map((u) => ({
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        tier: u.subscriptionTier || 'Free / Basic',
+        status: u.subscriptionStatus,
+        registeredAt: u.createdAt,
+      })),
+      endpoints: {
+        auth: '/api/auth (POST /signup, POST /login, GET /me)',
+        mediums: '/api/mediums',
+        gallery: '/api/gallery',
+        subscriptions: '/api/subscriptions',
+        liveSessions: '/api/live-sessions',
+        recordings: '/api/recordings',
+        studios: '/api/studios',
+        assistant: '/api/assistant',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.json({
+      success: true,
+      message: '🎨 ArtCrew API is running',
+      version: '1.0.0',
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Routes

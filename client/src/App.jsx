@@ -13,6 +13,7 @@ import Gallery from './pages/Gallery';
 import Mediums from './pages/Mediums';
 import MediumDetail from './pages/MediumDetail';
 import LiveSessions from './pages/LiveSessions';
+import LiveSessionViewer from './pages/LiveSessionViewer';
 import RecordedSessions from './pages/RecordedSessions';
 import Studios from './pages/Studios';
 import Subscriptions from './pages/Subscriptions';
@@ -52,6 +53,7 @@ function App() {
             <Route path="/mediums" element={<Mediums />} />
             <Route path="/mediums/:id" element={<MediumDetail />} />
             <Route path="/live-sessions" element={<LiveSessions />} />
+            <Route path="/live-sessions/:id" element={<LiveSessionViewer />} />
             <Route path="/recorded-sessions" element={<RecordedSessions />} />
             <Route path="/studios" element={<Studios />} />
             <Route path="/subscriptions" element={<Subscriptions />} />

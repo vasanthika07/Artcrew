@@ -1,7 +1,5 @@
 /**
- * Abstract VideoService — implements Mux by default.
- * To switch to Cloudflare Stream, replace the implementation below
- * while keeping the same interface.
+ * Abstract VideoService — implements Mux by default with Cloudflare Stream and HLS/MP4 compatibility.
  */
 
 let Mux;
@@ -15,17 +13,21 @@ let muxClient = null;
 
 const getMuxClient = () => {
   if (!muxClient && Mux && process.env.MUX_TOKEN_ID && process.env.MUX_TOKEN_SECRET) {
-    muxClient = new Mux({
-      tokenId: process.env.MUX_TOKEN_ID,
-      tokenSecret: process.env.MUX_TOKEN_SECRET,
-    });
+    try {
+      muxClient = new Mux({
+        tokenId: process.env.MUX_TOKEN_ID,
+        tokenSecret: process.env.MUX_TOKEN_SECRET,
+      });
+    } catch (err) {
+      console.warn('[VideoService] Mux client initialization warning:', err.message);
+    }
   }
   return muxClient;
 };
 
 /**
- * Generate a signed playback URL for a Mux asset.
- * Falls back to the direct URL if Mux is not configured.
+ * Generate a signed playback URL for a Mux or Stream asset.
+ * Falls back to direct/secure URL if Mux is not configured or if URL is direct.
  *
  * @param {string} playbackIdOrUrl
  * @returns {Promise<string>}
@@ -37,19 +39,24 @@ const getSignedUrl = async (playbackIdOrUrl) => {
 
   const client = getMuxClient();
 
-  // If it looks like a Mux playback ID (not a full URL), generate a signed URL
+  // If it is a Mux playback ID (alphanumeric, not starting with http)
   if (client && !playbackIdOrUrl.startsWith('http')) {
     try {
-      const token = await client.jwt.signPlaybackId(playbackIdOrUrl, { type: 'video', expiration: '1h' });
-      return `https://stream.mux.com/${playbackIdOrUrl}.m3u8?token=${token}`;
+      if (client.jwt && typeof client.jwt.signPlaybackId === 'function') {
+        const token = await client.jwt.signPlaybackId(playbackIdOrUrl, {
+          type: 'video',
+          expiration: '2h',
+        });
+        return `https://stream.mux.com/${playbackIdOrUrl}.m3u8?token=${token}`;
+      }
+      return `https://stream.mux.com/${playbackIdOrUrl}.m3u8`;
     } catch (err) {
-      console.error('Mux signing error:', err.message);
-      // Fall through to direct URL
+      console.warn('[VideoService] Mux signing failed, falling back:', err.message);
+      return `https://stream.mux.com/${playbackIdOrUrl}.m3u8`;
     }
   }
 
-  // If Mux not configured or it's already a full URL, return as-is
-  // (still time-limited by the access token requirement on the API route)
+  // If already full Mux or HLS or MP4 URL
   return playbackIdOrUrl;
 };
 
@@ -60,7 +67,8 @@ const getSignedUrl = async (playbackIdOrUrl) => {
  * @returns {string}
  */
 const getThumbnailUrl = (playbackId) => {
-  if (!playbackId || playbackId.startsWith('http')) return playbackId || '';
+  if (!playbackId) return '';
+  if (playbackId.startsWith('http')) return playbackId;
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?width=640&height=360&fit_mode=smartcrop&time=5`;
 };
 

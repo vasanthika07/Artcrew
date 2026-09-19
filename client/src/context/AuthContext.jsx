@@ -45,7 +45,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signup = useCallback(async (name, email, password) => {
-    const { data } = await api.post('/auth/signup', { name, email, password });
+    const deviceId = getDeviceId();
+    const { data } = await api.post('/auth/signup', { name, email, password, deviceId });
+    if (data.accessToken) {
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('deviceId', data.deviceId || deviceId);
+      setUser(data.user);
+    }
     return data;
   }, []);
 

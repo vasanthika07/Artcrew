@@ -131,7 +131,10 @@ class OverpassProvider extends StudioProvider {
         OVERPASS_URL,
         `data=${encodeURIComponent(query)}`,
         {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'ArtCrewStudioFinder/1.0 (contact: info@artcrew.in)',
+          },
           timeout: (TIMEOUT_S + 5) * 1000,
         }
       );

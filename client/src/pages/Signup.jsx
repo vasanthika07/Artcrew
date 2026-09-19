@@ -32,8 +32,8 @@ const Signup = () => {
     setLoading(true);
     try {
       await signup(form.name, form.email, form.password);
-      toast.success('Account created! Please sign in.');
-      navigate('/login');
+      toast.success(`Welcome to ArtCrew, ${form.name}! Your account is ready.`);
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {

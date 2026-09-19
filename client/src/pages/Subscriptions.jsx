@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Check, X as XIcon, Shield, ChevronDown, Zap } from 'lucide-react';
 import api from '../api/axios';
 import SubscriptionCard from '../components/SubscriptionCard';
+import CheckoutModal from '../components/CheckoutModal';
 import ErrorState from '../components/ErrorState';
 import { useAuth } from '../context/AuthContext';
 import { toast } from '../components/Toast';
@@ -10,7 +11,7 @@ import { toast } from '../components/Toast';
 const FAQ_ITEMS = [
   { q: 'Can I cancel anytime?', a: "Yes, cancel anytime from your account settings. You'll retain access until the end of your billing period — no questions asked." },
   { q: 'How does the device limit work?', a: 'Your account can be active on up to 2 devices simultaneously. Manage and revoke devices anytime from your account settings.' },
-  { q: 'Are payments secure?', a: 'Payments are processed securely via Razorpay with bank-grade encryption. We never store your card details.' },
+  { q: 'Are payments secure?', a: 'Payments are processed securely with bank-grade 256-bit encryption. We never store your card details.' },
   { q: 'Can I switch plans?', a: 'Yes, upgrade or downgrade your plan anytime. Changes take effect on your next billing cycle with prorated adjustments.' },
   { q: 'Is there a free trial?', a: "Our Free plan gives you permanent access to explore 3 art mediums and the recorded workshop previews — no credit card required." },
 ];
@@ -63,8 +64,9 @@ const Subscriptions = () => {
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
   const [billingPeriod, setBillingPeriod] = useState('monthly');
-  const { user, isAuthenticated }         = useAuth();
-  const navigate                          = useNavigate();
+  const [checkoutPlan,  setCheckoutPlan]  = useState(null);
+  const { user, isAuthenticated, refreshUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     api.get('/subscriptions')
@@ -78,36 +80,28 @@ const Subscriptions = () => {
       navigate('/login', { state: { from: '/subscriptions' } });
       return;
     }
-    if (!import.meta.env.VITE_RAZORPAY_KEY_ID && !plan.razorpayPlanId) {
-      toast.info('Payment integration coming soon. Contact us for early access.');
+
+    if (plan.price === 0) {
+      try {
+        await api.post('/subscriptions/verify-payment', {
+          planId: plan._id,
+        });
+        await refreshUser();
+        toast.success(`Switched to ${plan.name} plan!`);
+        navigate('/account');
+      } catch (err) {
+        toast.error('Failed to update plan');
+      }
       return;
     }
-    try {
-      const { data } = await api.post('/subscriptions/subscribe', { planId: plan._id });
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      document.body.appendChild(script);
-      script.onload = () => {
-        const rzp = new window.Razorpay({
-          key: data.checkout.key,
-          amount: data.checkout.amount * 100,
-          currency: data.checkout.currency || 'INR',
-          name: 'ArtCrew',
-          description: `${plan.name} Subscription`,
-          order_id: data.checkout.orderId,
-          subscription_id: data.checkout.subscriptionId,
-          prefill: { name: user?.name, email: user?.email },
-          theme: { color: '#d4892a' },
-          handler: () => {
-            toast.success('Subscription activated! Welcome to ArtCrew Premium.');
-            navigate('/account');
-          },
-        });
-        rzp.open();
-      };
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Payment initialization failed');
-    }
+
+    // Open rich checkout modal for paid plans
+    setCheckoutPlan(plan);
+  };
+
+  const handleCheckoutSuccess = async (plan) => {
+    await refreshUser();
+    navigate('/account');
   };
 
   return (
@@ -250,6 +244,14 @@ const Subscriptions = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Seamless Checkout & Payment Modal ── */}
+      <CheckoutModal
+        plan={checkoutPlan}
+        isOpen={Boolean(checkoutPlan)}
+        onClose={() => setCheckoutPlan(null)}
+        onSuccess={handleCheckoutSuccess}
+      />
     </div>
   );
 };

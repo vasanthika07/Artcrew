@@ -24,12 +24,14 @@ const validateCoords = (lat, lon) => {
  */
 const getNearbyStudios = async (req, res, next) => {
   try {
-    const { lat, lon, radius, medium, keyword, sort } = req.query;
+    const lat = req.query.lat || req.query.latitude;
+    const lon = req.query.lon || req.query.lng || req.query.longitude;
+    const { radius, medium, keyword, sort } = req.query;
 
     if (!lat || !lon) {
       return res.status(422).json({
         success: false,
-        message: 'lat and lon query parameters are required',
+        message: 'lat and lon (or latitude and longitude) query parameters are required',
         code:    'MISSING_COORDINATES',
       });
     }

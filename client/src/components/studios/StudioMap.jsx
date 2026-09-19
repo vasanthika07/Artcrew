@@ -53,7 +53,13 @@ const userIcon = L.divIcon({
 const MapFlyTo = ({ target, zoom = 14 }) => {
   const map = useMap();
   useEffect(() => {
-    if (target) {
+    if (
+      target &&
+      typeof target.lat === 'number' &&
+      Number.isFinite(target.lat) &&
+      typeof target.lon === 'number' &&
+      Number.isFinite(target.lon)
+    ) {
       map.flyTo([target.lat, target.lon], zoom, { duration: 1.2, easeLinearity: 0.25 });
     }
   }, [target, zoom, map]);

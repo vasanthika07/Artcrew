@@ -1,146 +1,75 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard, Image, Palette, Radio, Video, CreditCard, Users,
-  LogOut, ChevronRight, ExternalLink
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Menu, ChevronRight, Shield } from 'lucide-react';
+import AdminSidebar from '../components/admin/AdminSidebar';
 
-const NAV_SECTIONS = [
-  {
-    label: 'Overview',
-    links: [
-      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    ],
-  },
-  {
-    label: 'Content',
-    links: [
-      { to: '/admin/gallery',       icon: Image,   label: 'Gallery' },
-      { to: '/admin/mediums',       icon: Palette, label: 'Mediums' },
-      { to: '/admin/live-sessions', icon: Radio,   label: 'Live Sessions' },
-      { to: '/admin/recordings',    icon: Video,   label: 'Recordings' },
-    ],
-  },
-  {
-    label: 'Business',
-    links: [
-      { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
-      { to: '/admin/users',         icon: Users,       label: 'Users' },
-    ],
-  },
-];
-
-// Derive a readable page title from the path
 const getPageTitle = (pathname) => {
   const seg = pathname.split('/').filter(Boolean).pop() || 'dashboard';
   return seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' ');
 };
 
 const AdminLayout = () => {
-  const { user, logout } = useAuth();
-  const navigate         = useNavigate();
-  const location         = useLocation();
-  const pageTitle        = getPageTitle(location.pathname);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
+  const location = useLocation();
+  const pageTitle = getPageTitle(location.pathname);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex bg-charcoal-50">
+      {/* Desktop Sticky Sidebar */}
+      <div className="hidden lg:block sticky top-0 h-screen shrink-0">
+        <AdminSidebar />
+      </div>
 
-      {/* ── Sidebar ── */}
-      <aside
-        className="w-60 shrink-0 bg-charcoal-950 flex flex-col sticky top-0 h-screen overflow-y-auto"
-        aria-label="Admin navigation"
-      >
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-charcoal-800/60">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-canvas-500 to-terracotta-500 flex items-center justify-center shadow-art shrink-0">
-              <Palette className="w-4 h-4 text-white" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-display font-bold text-white text-sm leading-none">ArtCrew</p>
-              <p className="text-charcoal-500 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Admin Panel</p>
-            </div>
+      {/* Mobile Drawer Backdrop & Drawer */}
+      {mobileDrawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-charcoal-950/80 backdrop-blur-sm z-50 animate-fade-in"
+          onClick={() => setMobileDrawerOpen(false)}
+        >
+          <div
+            className="w-64 h-full bg-charcoal-950 animate-slide-in-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <AdminSidebar onClose={() => setMobileDrawerOpen(false)} />
           </div>
         </div>
+      )}
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-5 overflow-y-auto" aria-label="Admin pages">
-          {NAV_SECTIONS.map(({ label, links }) => (
-            <div key={label}>
-              <p className="sidebar-section-label">{label}</p>
-              <div className="space-y-0.5">
-                {links.map(({ to, icon: Icon, label: linkLabel }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    className={({ isActive }) =>
-                      `sidebar-link ${isActive ? 'active' : ''}`
-                    }
-                    aria-label={linkLabel}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>{linkLabel}</span>
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        {/* View site link */}
-        <div className="px-3 pb-2">
-          <a
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs text-charcoal-500 hover:text-charcoal-300 hover:bg-charcoal-800 transition-all"
-            aria-label="View public site in new tab"
-          >
-            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-            View Site
-          </a>
-        </div>
-
-        {/* User footer */}
-        <div className="p-3 border-t border-charcoal-800/60">
-          <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-canvas-400 to-terracotta-400 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-art">
-              {user?.name?.charAt(0)?.toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-white text-xs font-semibold truncate">{user?.name}</p>
-              <p className="text-charcoal-500 text-[10px] truncate">{user?.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-4 py-2 rounded-xl text-xs text-charcoal-400 hover:bg-red-900/25 hover:text-red-400 transition-all"
-            aria-label="Sign out of admin panel"
-          >
-            <LogOut className="w-3.5 h-3.5" aria-hidden="true" /> Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* ── Main content ── */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="h-14 bg-white border-b border-charcoal-100 flex items-center px-6 sticky top-0 z-20 shadow-sm">
-          <nav className="flex items-center gap-1.5 text-sm text-charcoal-400" aria-label="Breadcrumb">
-            <span className="text-charcoal-400">Admin</span>
-            <ChevronRight className="w-3.5 h-3.5 text-charcoal-300" aria-hidden="true" />
-            <span className="text-charcoal-800 font-semibold capitalize">{pageTitle}</span>
-          </nav>
+        {/* Top Breadcrumb Bar */}
+        <header className="h-16 bg-white border-b border-charcoal-100 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileDrawerOpen(true)}
+              aria-label="Open admin navigation menu"
+              className="lg:hidden p-2 rounded-xl text-charcoal-600 hover:text-charcoal-900 hover:bg-charcoal-100 transition-colors cursor-pointer"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <nav className="flex items-center gap-2 text-xs sm:text-sm font-medium" aria-label="Breadcrumb">
+              <span className="text-charcoal-400 font-semibold flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5 text-canvas-500" /> Admin
+              </span>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-300" />
+              <span className="text-charcoal-900 font-bold capitalize">{pageTitle}</span>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-canvas-50 text-canvas-700 border border-canvas-200">
+              ⚡ Admin Mode
+            </span>
+          </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-6 lg:p-8 overflow-auto bg-charcoal-50" id="main-content">
-          <Outlet />
+        {/* Page Container */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-charcoal-50" id="admin-main-content">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
-    subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', default: null },
+    subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan', default: null },
     subscriptionStatus: {
       type: String,
       enum: ['none', 'active', 'expired', 'cancelled'],
@@ -31,6 +31,15 @@ const userSchema = new mongoose.Schema(
     razorpaySubscriptionId: { type: String, default: null },
     devices: [deviceSchema],
     maxDevices: { type: Number, default: 2 },
+    avatarUrl: { type: String, default: '' },
+    bio: { type: String, default: '' },
+    savedMediums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Medium' }],
+    bookmarkedStudios: [{ type: String }],
+    preferences: {
+      onboardingQuiz: { type: Object, default: {} },
+      recommendedMedium: { type: mongoose.Schema.Types.ObjectId, ref: 'Medium', default: null },
+      favoriteMediums: [{ type: String }],
+    },
     billingHistory: [
       {
         amount: Number,
@@ -45,7 +54,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);
