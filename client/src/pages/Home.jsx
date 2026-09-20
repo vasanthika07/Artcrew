@@ -98,7 +98,7 @@ const Home = () => {
       ════════════════════════════════════════════ */}
       <section className="relative min-h-hero flex items-center bg-charcoal-950 overflow-hidden" aria-label="Hero">
         
-        {/* Landscape background video with subtle opacity */}
+        {/* Landscape background video with subtle opacity across the full hero section */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" aria-hidden="true">
           <video
             ref={bgVideoRef}
@@ -106,15 +106,17 @@ const Home = () => {
             loop
             muted
             playsInline
-            className="w-full h-full object-cover object-center opacity-25 scale-105"
+            onLoadedData={() => {
+              if (bgVideoRef.current) bgVideoRef.current.play().catch(() => {});
+            }}
+            className="w-full h-full object-cover object-center opacity-35 scale-100 transition-opacity duration-700"
           >
             <source src="/images/dashboard/dashboard-video.mp4" type="video/mp4" />
             <source src="/images/dashboard/WhatsApp Video 2026-09-19 at 23.20.19.mp4" type="video/mp4" />
           </video>
-          {/* Gradients and texture overlays for readability & premium aesthetic */}
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950 via-charcoal-950/85 to-charcoal-950/60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-transparent to-charcoal-950/70" />
-          <div className="absolute inset-0 bg-hero-pattern opacity-30" />
+          {/* Subtle cinematic gradient overlays for high contrast and crystal-clear text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/90 via-charcoal-950/60 to-charcoal-950/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-transparent to-charcoal-950/40" />
         </div>
 
         {/* Ambient blobs */}
