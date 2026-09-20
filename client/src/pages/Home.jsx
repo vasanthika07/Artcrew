@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, MapPin, Palette, Volume2, VolumeX, ChevronDown, Crown, Star
+  ArrowRight, Sparkles, MapPin, Palette, Volume2, VolumeX, ChevronDown, Crown, Star, Play
 } from 'lucide-react';
 import api from '../api/axios';
 import MediumCard from '../components/MediumCard';
