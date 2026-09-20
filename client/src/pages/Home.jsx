@@ -94,11 +94,11 @@ const Home = () => {
     <div className="overflow-x-hidden">
 
       {/* ════════════════════════════════════════════
-          HERO (With Landscape Background Video)
+          HERO (Symmetrical Layout & Ambient Background Video)
       ════════════════════════════════════════════ */}
-      <section className="relative min-h-hero flex items-center bg-charcoal-950 overflow-hidden" aria-label="Hero">
+      <section className="relative min-h-hero flex items-center bg-charcoal-950 overflow-hidden py-16 sm:py-20 lg:py-24" aria-label="Hero">
         
-        {/* Landscape background video with subtle opacity across the full hero section */}
+        {/* Landscape background video with subtle, soft ambient opacity */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" aria-hidden="true">
           <video
             ref={bgVideoRef}
@@ -109,84 +109,157 @@ const Home = () => {
             onLoadedData={() => {
               if (bgVideoRef.current) bgVideoRef.current.play().catch(() => {});
             }}
-            className="w-full h-full object-cover object-center opacity-35 scale-100 transition-opacity duration-700"
+            className="w-full h-full object-cover object-center opacity-18 scale-100 transition-opacity duration-700"
           >
             <source src="/images/dashboard/dashboard-video.mp4" type="video/mp4" />
             <source src="/images/dashboard/WhatsApp Video 2026-09-19 at 23.20.19.mp4" type="video/mp4" />
           </video>
-          {/* Subtle cinematic gradient overlays for high contrast and crystal-clear text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/90 via-charcoal-950/60 to-charcoal-950/25" />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-transparent to-charcoal-950/40" />
+          {/* Refined gradient overlays for optimal text clarity and soft cinematic depth */}
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/95 via-charcoal-950/70 to-charcoal-950/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-transparent to-charcoal-950/60" />
         </div>
 
         {/* Ambient blobs */}
-        <PaintBlob color="#d4892a" top="5%"  left="65%" size="500px" delay="0s"   opacity="0.12" />
-        <PaintBlob color="#d9522c" top="55%" left="5%"  size="350px" delay="2s"   opacity="0.10" />
-        <PaintBlob color="#478a41" top="15%" left="-5%" size="250px" delay="4s"   opacity="0.08" />
-        <PaintBlob color="#d4892a" top="70%" left="80%" size="200px" delay="1.5s" opacity="0.08" />
+        <PaintBlob color="#d4892a" top="5%"  left="65%" size="500px" delay="0s"   opacity="0.10" />
+        <PaintBlob color="#d9522c" top="55%" left="5%"  size="350px" delay="2s"   opacity="0.08" />
+        <PaintBlob color="#478a41" top="15%" left="-5%" size="250px" delay="4s"   opacity="0.06" />
+        <PaintBlob color="#d4892a" top="70%" left="80%" size="200px" delay="1.5s" opacity="0.07" />
 
-        <div className="container-art relative z-10 py-24 sm:py-28">
-          <div className="max-w-3xl">
+        <div className="container-art relative z-10 w-full">
+          {/* Symmetrical 2-Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center mb-14 sm:mb-16">
+            
+            {/* Left Column: Headline, Description & Primary Actions */}
+            <div className="lg:col-span-7 flex flex-col justify-center text-left">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-canvas-500/15 border border-canvas-500/25 text-canvas-300 text-xs font-semibold mb-6 animate-fade-in tracking-wide uppercase w-fit">
+                <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                India's Premier Art Discovery Platform
+              </div>
 
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-canvas-500/15 border border-canvas-500/25 text-canvas-300 text-xs font-semibold mb-8 animate-fade-in tracking-wide uppercase">
-              <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-              India's Premier Art Discovery Platform
+              {/* Headline */}
+              <h1 className="display-hero text-4xl sm:text-5xl lg:text-6xl text-white mb-5 animate-fade-up leading-[1.15]" style={{ animationDelay: '0.1s' }}>
+                Discover Your{' '}
+                <span className="relative inline-block">
+                  <span className="gradient-text">Art Medium</span>
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full"
+                    viewBox="0 0 300 10"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 8 C80 2, 200 2, 298 8" stroke="#d4892a" strokeWidth="2.5" strokeLinecap="round" className="opacity-50" />
+                  </svg>
+                </span>
+                <br />& Find Your Studio
+              </h1>
+
+              <p className="text-charcoal-300 text-base sm:text-lg mb-8 leading-relaxed max-w-xl animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                From watercolour landscapes to pottery wheels — explore art mediums,
+                watch live masterclasses, and find studios near you. Let our AI guide your creative journey.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3 animate-fade-up mb-8" style={{ animationDelay: '0.3s' }}>
+                <Link to="/mediums" className="btn-primary btn-lg group">
+                  <Palette className="w-5 h-5" aria-hidden="true" />
+                  Explore Mediums
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                </Link>
+                <Link to="/studios" className="btn-white-ghost btn-lg">
+                  <MapPin className="w-5 h-5" aria-hidden="true" />
+                  Find Studios
+                </Link>
+                <Link to="/assistant" className="btn btn-lg border border-canvas-500/35 bg-canvas-500/10 text-canvas-300 hover:bg-canvas-500/20 hover:border-canvas-500/60 transition-all">
+                  <Sparkles className="w-5 h-5" aria-hidden="true" />
+                  Ask AI Advisor
+                </Link>
+              </div>
+
+              {/* Feature Highlights Pills */}
+              <div className="flex flex-wrap items-center gap-4 text-xs text-charcoal-400 animate-fade-up" style={{ animationDelay: '0.35s' }}>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> 5+ Curated Mediums</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Verified Indian Studios</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> AI Match Engine</span>
+              </div>
             </div>
 
-            {/* Headline */}
-            <h1 className="display-hero text-5xl sm:text-6xl lg:text-7xl text-white mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-              Discover Your{' '}
-              <span className="relative inline-block">
-                <span className="gradient-text">Art Medium</span>
-                <svg
-                  className="absolute -bottom-2 left-0 w-full"
-                  viewBox="0 0 300 10"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path d="M2 8 C80 2, 200 2, 298 8" stroke="#d4892a" strokeWidth="2.5" strokeLinecap="round" className="opacity-50" />
-                </svg>
-              </span>
-              <br />& Find Your Studio
-            </h1>
+            {/* Right Column: Symmetrical Glass Showcase Cards */}
+            <div className="lg:col-span-5 flex flex-col gap-4 animate-fade-up" style={{ animationDelay: '0.25s' }}>
+              
+              {/* Card 1: Featured Masterclass Card */}
+              <div className="bg-charcoal-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl hover:border-canvas-500/30 transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-bold tracking-wider uppercase text-canvas-400 bg-canvas-500/15 px-3 py-1 rounded-full border border-canvas-500/20">
+                    Live Workshop
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs text-rose-400 font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    Now Streaming
+                  </span>
+                </div>
+                <h3 className="font-display font-bold text-xl text-white mb-2">
+                  Watercolour Landscapes & Fluidity
+                </h3>
+                <p className="text-charcoal-400 text-xs sm:text-sm mb-4 line-clamp-2">
+                  Learn wet-on-wet watercolor layering, pigment ratios, and organic texture blending from certified studio artists.
+                </p>
+                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                  <div className="text-xs text-charcoal-400">
+                    <span className="text-white font-medium">All Skill Levels</span> • 45 Mins
+                  </div>
+                  <Link to="/live-sessions" className="text-xs font-semibold text-canvas-400 hover:text-canvas-300 flex items-center gap-1">
+                    Join Session <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
 
-            <p className="text-charcoal-300 text-lg sm:text-xl mb-10 leading-relaxed max-w-xl animate-fade-up" style={{ animationDelay: '0.2s' }}>
-              From watercolour landscapes to pottery wheels — explore art mediums,
-              watch live masterclasses, and find studios near you. Let our AI guide your creative journey.
-            </p>
+              {/* Card 2: Quick Medium Navigator */}
+              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-5 shadow-lg">
+                <p className="text-xs uppercase tracking-wider text-charcoal-400 font-semibold mb-3">Popular Mediums</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Paintings', 'Pottery & Clay', 'Charcoal Sketching', 'Digital Art', 'Watercolour', 'Portraits'].map((tag) => (
+                    <Link
+                      key={tag}
+                      to="/mediums"
+                      className="text-xs px-3 py-1.5 rounded-lg bg-charcoal-800/80 hover:bg-canvas-500/20 text-charcoal-300 hover:text-white border border-white/5 hover:border-canvas-500/30 transition-colors"
+                    >
+                      {tag}
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-3 animate-fade-up" style={{ animationDelay: '0.3s' }}>
-              <Link to="/mediums" className="btn-primary btn-lg group">
-                <Palette className="w-5 h-5" aria-hidden="true" />
-                Explore Mediums
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-              </Link>
-              <Link to="/studios" className="btn-white-ghost btn-lg">
-                <MapPin className="w-5 h-5" aria-hidden="true" />
-                Find Studios
-              </Link>
-              <Link to="/assistant" className="btn btn-lg border-2 border-canvas-500/35 text-canvas-300 hover:bg-canvas-500/12 hover:border-canvas-500/55 transition-all">
-                <Sparkles className="w-5 h-5" aria-hidden="true" />
-                Ask AI Advisor
-              </Link>
             </div>
 
-            {/* Stats */}
-            <div
-              className="grid grid-cols-3 gap-8 mt-20 pt-8 border-t border-white/10 max-w-sm animate-fade-up"
-              style={{ animationDelay: '0.4s' }}
-              aria-label="Platform statistics"
-            >
-              <Stat value="5+"   label="Art Mediums" />
-              <Stat value="50+"  label="Studios" />
-              <Stat value="100%" label="Beginner Friendly" />
+          </div>
+
+          {/* Symmetrical Stats Bar Across Full Width */}
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-8 border-t border-white/10 animate-fade-up"
+            style={{ animationDelay: '0.4s' }}
+            aria-label="Platform statistics"
+          >
+            <div className="bg-charcoal-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 text-center">
+              <div className="font-display font-bold text-2xl sm:text-3xl text-white mb-1">5+</div>
+              <div className="text-charcoal-400 text-[11px] uppercase tracking-wider font-medium">Art Mediums</div>
+            </div>
+            <div className="bg-charcoal-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 text-center">
+              <div className="font-display font-bold text-2xl sm:text-3xl text-white mb-1">50+</div>
+              <div className="text-charcoal-400 text-[11px] uppercase tracking-wider font-medium">Verified Studios</div>
+            </div>
+            <div className="bg-charcoal-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 text-center">
+              <div className="font-display font-bold text-2xl sm:text-3xl text-white mb-1">100%</div>
+              <div className="text-charcoal-400 text-[11px] uppercase tracking-wider font-medium">Beginner Friendly</div>
+            </div>
+            <div className="bg-charcoal-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 text-center">
+              <div className="font-display font-bold text-2xl sm:text-3xl text-white mb-1">24/7</div>
+              <div className="text-charcoal-400 text-[11px] uppercase tracking-wider font-medium">AI Art Advisor</div>
             </div>
           </div>
         </div>
 
-        {/* Subtle Ambient Audio Toggle in bottom right */}
+        {/* Ambient Audio Toggle in bottom right */}
         <div className="absolute bottom-6 right-6 z-20 hidden sm:block">
           <button
             type="button"
@@ -201,9 +274,9 @@ const Home = () => {
         </div>
 
         {/* Scroll cue */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-charcoal-500 animate-bounce pointer-events-none" aria-hidden="true">
-          <span className="text-[10px] uppercase tracking-[0.15em]">Scroll</span>
-          <ChevronDown className="w-4 h-4" />
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-1.5 text-charcoal-500 animate-bounce pointer-events-none" aria-hidden="true">
+          <span className="text-[9px] uppercase tracking-[0.15em]">Scroll</span>
+          <ChevronDown className="w-3.5 h-3.5" />
         </div>
       </section>
 
