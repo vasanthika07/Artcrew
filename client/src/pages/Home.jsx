@@ -98,7 +98,7 @@ const Home = () => {
       ════════════════════════════════════════════ */}
       <section className="relative min-h-hero flex items-center bg-charcoal-950 overflow-hidden py-16 sm:py-20 lg:py-24" aria-label="Hero">
         
-        {/* Landscape background video with subtle, soft ambient opacity */}
+        {/* Landscape background video visible in a fine, crisp ambient way */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" aria-hidden="true">
           <video
             ref={bgVideoRef}
@@ -109,14 +109,14 @@ const Home = () => {
             onLoadedData={() => {
               if (bgVideoRef.current) bgVideoRef.current.play().catch(() => {});
             }}
-            className="w-full h-full object-cover object-center opacity-18 scale-100 transition-opacity duration-700"
+            className="w-full h-full object-cover object-center opacity-25 scale-100 transition-opacity duration-700"
           >
             <source src="/images/dashboard/dashboard-video.mp4" type="video/mp4" />
             <source src="/images/dashboard/WhatsApp Video 2026-09-19 at 23.20.19.mp4" type="video/mp4" />
           </video>
-          {/* Refined gradient overlays for optimal text clarity and soft cinematic depth */}
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/95 via-charcoal-950/70 to-charcoal-950/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-transparent to-charcoal-950/60" />
+          {/* Balanced soft gradient overlay so video artwork is finely visible while maintaining text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/85 via-charcoal-950/45 to-charcoal-950/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/90 via-transparent to-charcoal-950/30" />
         </div>
 
         {/* Ambient blobs */}
