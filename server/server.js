@@ -185,6 +185,24 @@ app.get(['/', '/api', '/health'], async (req, res) => {
 });
 
 // Routes
+const { resetPassword } = require('./controllers/authController');
+app.all(
+  [
+    '/api/auth/forgot-password',
+    '/api/auth/reset-password',
+    '/api/forgot-password',
+    '/api/reset-password',
+    '/api/auth/forgotpassword',
+    '/api/auth/resetpassword',
+  ],
+  (req, res, next) => {
+    if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+      return resetPassword(req, res, next);
+    }
+    res.status(405).json({ success: false, message: 'Method Not Allowed' });
+  }
+);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/mediums', mediumRoutes);
 app.use('/api/gallery', galleryRoutes);

@@ -86,11 +86,24 @@ const Login = () => {
 
     setForgotLoading(true);
     try {
-      const res = await api.post('/auth/forgot-password', {
-        email: forgotForm.email.trim(),
-        newPassword: forgotForm.newPassword,
-        confirmPassword: forgotForm.confirmPassword,
-      });
+      let res;
+      try {
+        res = await api.post('/auth/forgot-password', {
+          email: forgotForm.email.trim(),
+          newPassword: forgotForm.newPassword,
+          confirmPassword: forgotForm.confirmPassword,
+        });
+      } catch (err1) {
+        if (err1.response?.status === 404) {
+          res = await api.post('/auth/reset-password', {
+            email: forgotForm.email.trim(),
+            newPassword: forgotForm.newPassword,
+            confirmPassword: forgotForm.confirmPassword,
+          });
+        } else {
+          throw err1;
+        }
+      }
 
       toast.success(res.data?.message || 'Password successfully updated! You can now log in.');
 

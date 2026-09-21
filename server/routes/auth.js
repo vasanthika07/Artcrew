@@ -16,8 +16,17 @@ const { authenticate } = require('../middleware/authenticate');
 router.post('/signup', signup);
 router.post('/login', login);
 router.post('/refresh', refresh);
+
+// Forgot / Reset Password routes (support POST & PUT and camel/kebab-case variants)
 router.post('/forgot-password', resetPassword);
+router.put('/forgot-password', resetPassword);
 router.post('/reset-password', resetPassword);
+router.put('/reset-password', resetPassword);
+router.post('/forgotpassword', resetPassword);
+router.put('/forgotpassword', resetPassword);
+router.post('/resetpassword', resetPassword);
+router.put('/resetpassword', resetPassword);
+
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);
 router.put('/profile', authenticate, updateProfile);
