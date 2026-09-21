@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: '' },
     savedMediums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Medium' }],
     bookmarkedStudios: [{ type: String }],
+    isSuspended: { type: Boolean, default: false },
     preferences: {
       onboardingQuiz: { type: Object, default: {} },
       recommendedMedium: { type: mongoose.Schema.Types.ObjectId, ref: 'Medium', default: null },

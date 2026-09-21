@@ -297,4 +297,64 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, login, logout, refresh, getDevices, revokeDevice, getMe, updateProfile };
+// POST /api/auth/forgot-password or /api/auth/reset-password
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email, newPassword, confirmPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(422).json({
+        success: false,
+        message: 'Email and new password are required',
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(422).json({
+        success: false,
+        message: 'New password must be at least 8 characters long',
+      });
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return res.status(422).json({
+        success: false,
+        message: 'Passwords do not match',
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email address',
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    user.passwordHash = passwordHash;
+
+    // Reset device refresh tokens to ensure clean session state
+    user.devices = [];
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password successfully updated. You can now log in with your new password.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  signup,
+  login,
+  logout,
+  refresh,
+  getDevices,
+  revokeDevice,
+  getMe,
+  updateProfile,
+  resetPassword,
+};

@@ -30,6 +30,7 @@ import AdminLiveSessions from './pages/admin/AdminLiveSessions';
 import AdminRecordings from './pages/admin/AdminRecordings';
 import AdminSubscriptions from './pages/admin/AdminSubscriptions';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminProgress from './pages/admin/AdminProgress';
 
 const NotFound = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -82,6 +83,7 @@ function App() {
             <Route path="live-sessions" element={<AdminLiveSessions />} />
             <Route path="recordings" element={<AdminRecordings />} />
             <Route path="subscriptions" element={<AdminSubscriptions />} />
+            <Route path="progress" element={<AdminProgress />} />
             <Route path="users" element={<AdminUsers />} />
           </Route>
 

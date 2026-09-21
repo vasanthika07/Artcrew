@@ -8,6 +8,7 @@ import {
   Video,
   CreditCard,
   Users,
+  GraduationCap,
   LogOut,
   ExternalLink,
   Shield,
@@ -32,10 +33,11 @@ export const ADMIN_NAV_SECTIONS = [
     ],
   },
   {
-    label: 'Business & Access',
+    label: 'Learning & Access',
     links: [
-      { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
+      { to: '/admin/progress', icon: GraduationCap, label: 'User Progress' },
       { to: '/admin/users', icon: Users, label: 'Users' },
+      { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     ],
   },
 ];

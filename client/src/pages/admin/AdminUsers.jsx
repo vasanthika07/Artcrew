@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Shield,
@@ -16,6 +17,7 @@ import {
   Sparkles,
   CheckCircle2,
   AlertTriangle,
+  GraduationCap,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../../api/axios';
@@ -48,6 +50,7 @@ const Modal = ({ title, onClose, children }) => (
 );
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -347,6 +350,13 @@ const AdminUsers = () => {
                   </td>
                   <td>
                     <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => navigate(`/admin/progress?user=${u._id}`)}
+                        title="Track & Edit User Progress"
+                        className="btn-ghost btn-sm text-canvas-600 hover:bg-canvas-50"
+                      >
+                        <GraduationCap className="w-3.5 h-3.5" />
+                      </button>
                       <button
                         onClick={() => viewUserDetails(u)}
                         title="View Full Profile & Devices"

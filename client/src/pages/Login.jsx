@@ -1,18 +1,41 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Palette, AlertCircle, ArrowLeft } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Palette,
+  AlertCircle,
+  ArrowLeft,
+  KeyRound,
+  CheckCircle2,
+  X,
+  Lock,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from '../components/Toast';
+import api from '../api/axios';
 
 const Login = () => {
-  const [form,         setForm]         = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading,      setLoading]      = useState(false);
-  const [error,        setError]        = useState(null);
-  const { login }   = useAuth();
-  const navigate    = useNavigate();
-  const location    = useLocation();
-  const from        = location.state?.from?.pathname || '/';
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
+
+  // Forgot / Reset Password state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotForm, setForgotForm] = useState({
+    email: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +46,7 @@ const Login = () => {
       toast.success('Welcome back!');
       navigate(from, { replace: true });
     } catch (err) {
-      const msg  = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
       const code = err.response?.data?.code;
       setError({ message: msg, devices: code === 'DEVICE_LIMIT_REACHED' ? err.response?.data?.devices : null });
     } finally {
@@ -31,9 +54,63 @@ const Login = () => {
     }
   };
 
+  const handleOpenForgotModal = (e) => {
+    e?.preventDefault();
+    setForgotForm({
+      email: form.email || '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setForgotError(null);
+    setShowForgotModal(true);
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setForgotError(null);
+
+    if (!forgotForm.email.trim()) {
+      setForgotError('Please enter your account email address.');
+      return;
+    }
+
+    if (forgotForm.newPassword.length < 8) {
+      setForgotError('New password must be at least 8 characters long.');
+      return;
+    }
+
+    if (forgotForm.newPassword !== forgotForm.confirmPassword) {
+      setForgotError('Passwords do not match. Please verify both fields.');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const res = await api.post('/auth/forgot-password', {
+        email: forgotForm.email.trim(),
+        newPassword: forgotForm.newPassword,
+        confirmPassword: forgotForm.confirmPassword,
+      });
+
+      toast.success(res.data?.message || 'Password successfully updated! You can now log in.');
+
+      // Pre-fill the login form with the updated credentials
+      setForm({
+        email: forgotForm.email.trim(),
+        password: forgotForm.newPassword,
+      });
+
+      setShowForgotModal(false);
+      setForgotForm({ email: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setForgotError(err.response?.data?.message || 'Failed to update password. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-cream">
-
       {/* ── Left art panel ── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" aria-hidden="true">
         <img
@@ -63,7 +140,6 @@ const Login = () => {
       {/* ── Right form panel ── */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center min-h-screen p-8">
         <div className="w-full max-w-md">
-
           {/* Back to site */}
           <Link
             to="/"
@@ -129,9 +205,13 @@ const Login = () => {
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label htmlFor="login-password" className="label mb-0">Password</label>
-                <a href="#" className="text-xs text-canvas-500 hover:text-canvas-600 transition-colors font-medium">
+                <button
+                  type="button"
+                  onClick={handleOpenForgotModal}
+                  className="text-xs text-canvas-600 hover:text-canvas-700 transition-colors font-semibold cursor-pointer underline-offset-2 hover:underline"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
               <div className="relative">
                 <input
@@ -149,7 +229,7 @@ const Login = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors p-1"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors p-1 cursor-pointer"
                 >
                   {showPassword
                     ? <EyeOff className="w-4 h-4" aria-hidden="true" />
@@ -162,7 +242,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full justify-center py-3 text-base"
+              className="btn-primary w-full justify-center py-3 text-base cursor-pointer shadow-sm"
               aria-busy={loading}
             >
               {loading ? (
@@ -182,8 +262,180 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {/* ── Forgot / Reset Password Modal ── */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-charcoal-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div
+            className="bg-white rounded-3xl shadow-dark w-full max-w-md animate-fade-up overflow-hidden border border-charcoal-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-charcoal-100 bg-charcoal-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-canvas-500/10 text-canvas-600 flex items-center justify-center">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-lg text-charcoal-900 leading-tight">
+                    Reset Password
+                  </h3>
+                  <p className="text-xs text-charcoal-500">
+                    Set a new secure password for your account
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="p-1.5 rounded-lg hover:bg-charcoal-200 text-charcoal-400 hover:text-charcoal-700 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {forgotError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 mb-5 flex items-start gap-2.5 text-xs text-red-700">
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <p className="font-medium">{forgotError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                {/* Email input */}
+                <div>
+                  <label className="label">Registered Email</label>
+                  <input
+                    type="email"
+                    value={forgotForm.email}
+                    onChange={(e) =>
+                      setForgotForm((prev) => ({ ...prev, email: e.target.value }))
+                    }
+                    placeholder="you@example.com"
+                    required
+                    className="input w-full"
+                    autoComplete="email"
+                  />
+                </div>
+
+                {/* New password input */}
+                <div>
+                  <label className="label">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={forgotForm.newPassword}
+                      onChange={(e) =>
+                        setForgotForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                      }
+                      placeholder="At least 8 characters"
+                      required
+                      minLength={8}
+                      className="input pr-12 w-full"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors p-1 cursor-pointer"
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm password input */}
+                <div>
+                  <label className="label">Confirm New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={forgotForm.confirmPassword}
+                      onChange={(e) =>
+                        setForgotForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                      }
+                      placeholder="Repeat your new password"
+                      required
+                      minLength={8}
+                      className="input pr-12 w-full"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors p-1 cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Password requirement hint */}
+                <div className="p-3 bg-charcoal-50 rounded-xl border border-charcoal-100 text-[11px] text-charcoal-500 space-y-1">
+                  <p className="font-semibold text-charcoal-700 flex items-center gap-1.5">
+                    <Lock className="w-3 h-3 text-canvas-500" /> Security Requirements:
+                  </p>
+                  <p className={forgotForm.newPassword.length >= 8 ? 'text-emerald-600 font-medium' : ''}>
+                    • Minimum 8 characters in length
+                  </p>
+                  <p
+                    className={
+                      forgotForm.newPassword &&
+                      forgotForm.newPassword === forgotForm.confirmPassword
+                        ? 'text-emerald-600 font-medium'
+                        : ''
+                    }
+                  >
+                    • Both passwords must match
+                  </p>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="btn-secondary btn-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="btn-primary btn-sm shadow-sm"
+                  >
+                    {forgotLoading ? (
+                      <>
+                        <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin mr-1.5" />
+                        Updating...
+                      </>
+                    ) : (
+                      'Save & Update Password'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Login;
+
