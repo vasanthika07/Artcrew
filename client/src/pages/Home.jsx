@@ -116,6 +116,7 @@ const Home = () => {
               minHeight: '100%',
             }}
           >
+            <source src="/images/dashboard/WhatsApp Video 2026-09-21 at 21.52.43.mp4" type="video/mp4" />
             <source src="/images/dashboard/dashboard-video.mp4" type="video/mp4" />
             <source src="/images/dashboard/WhatsApp Video 2026-09-19 at 23.20.19.mp4" type="video/mp4" />
           </video>

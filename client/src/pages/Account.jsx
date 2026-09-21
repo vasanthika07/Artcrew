@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   User,
@@ -9,9 +9,13 @@ import {
   Shield,
   Crown,
   Play,
+  Pause,
   Film,
   Sparkles,
   CheckCircle,
+  Volume2,
+  VolumeX,
+  Video,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../api/axios';
@@ -32,6 +36,30 @@ const Account = () => {
   const [devices, setDevices] = useState([]);
   const [loadingDevices, setLoadingDevices] = useState(true);
   const [revokingDevice, setRevokingDevice] = useState(null);
+
+  // Featured Studio Reel video state
+  const dashboardVideoRef = useRef(null);
+  const [isReelPlaying, setIsReelPlaying] = useState(true);
+  const [isReelMuted, setIsReelMuted] = useState(true);
+
+  const toggleReelPlay = () => {
+    if (dashboardVideoRef.current) {
+      if (dashboardVideoRef.current.paused) {
+        dashboardVideoRef.current.play();
+        setIsReelPlaying(true);
+      } else {
+        dashboardVideoRef.current.pause();
+        setIsReelPlaying(false);
+      }
+    }
+  };
+
+  const toggleReelMute = () => {
+    if (dashboardVideoRef.current) {
+      dashboardVideoRef.current.muted = !dashboardVideoRef.current.muted;
+      setIsReelMuted(dashboardVideoRef.current.muted);
+    }
+  };
 
   // Continue Watching state
   const [continueWatchingItems, setContinueWatchingItems] = useState([]);
@@ -156,6 +184,91 @@ const Account = () => {
       </div>
 
       <div className="container-art py-10">
+        {/* ── Studio & Workshop Video Reel Showcase ── */}
+        <div className="mb-10 overflow-hidden rounded-3xl bg-charcoal-950 border border-charcoal-800 shadow-2xl relative group">
+          <div className="relative aspect-video sm:aspect-[21/9] w-full max-h-[420px] overflow-hidden bg-charcoal-900">
+            <video
+              ref={dashboardVideoRef}
+              autoPlay
+              loop
+              muted
+              playsInline
+              webkit-playsinline="true"
+              onLoadedData={() => {
+                if (dashboardVideoRef.current) dashboardVideoRef.current.play().catch(() => {});
+              }}
+              className="w-full h-full object-cover object-center"
+            >
+              <source src="/images/dashboard/WhatsApp Video 2026-09-21 at 21.52.43.mp4" type="video/mp4" />
+              <source src="/images/dashboard/dashboard-video.mp4" type="video/mp4" />
+              <source src="/images/dashboard/WhatsApp Video 2026-09-19 at 23.20.19.mp4" type="video/mp4" />
+            </video>
+
+            {/* Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-charcoal-950/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/80 via-transparent to-transparent" />
+
+            {/* Content Overlay */}
+            <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-between z-10">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-canvas-500/25 text-canvas-300 border border-canvas-500/35 backdrop-blur-md">
+                    Studio Experience
+                  </span>
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-charcoal-900/80 text-charcoal-300 border border-white/10 backdrop-blur-md">
+                    <Sparkles className="w-3 h-3 text-canvas-400" /> Masterclass Highlights
+                  </span>
+                </div>
+
+                {/* Video Controls in top right */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleReelPlay}
+                    className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-charcoal-900/80 hover:bg-charcoal-800 border border-white/15 text-white text-xs font-medium backdrop-blur-md transition-all flex items-center gap-1.5"
+                    aria-label={isReelPlaying ? 'Pause video reel' : 'Play video reel'}
+                  >
+                    {isReelPlaying ? <Pause className="w-4 h-4 text-canvas-400" /> : <Play className="w-4 h-4 fill-white" />}
+                    <span className="hidden sm:inline">{isReelPlaying ? 'Pause' : 'Play'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleReelMute}
+                    className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-charcoal-900/80 hover:bg-charcoal-800 border border-white/15 text-white text-xs font-medium backdrop-blur-md transition-all flex items-center gap-1.5"
+                    aria-label={isReelMuted ? 'Unmute video sound' : 'Mute video sound'}
+                  >
+                    {isReelMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-canvas-400" />}
+                    <span className="hidden sm:inline">{isReelMuted ? 'Muted' : 'Sound on'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="max-w-xl">
+                <h3 className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-white mb-2 leading-tight">
+                  Welcome to Your Creative Dashboard
+                </h3>
+                <p className="text-charcoal-300 text-xs sm:text-sm line-clamp-2 mb-4">
+                  Watch certified studio artists demonstrate live techniques, discover workshops, and continue your creative learning journey.
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    to="/recorded-sessions"
+                    className="btn-primary btn-sm"
+                  >
+                    <Video className="w-4 h-4" /> Explore Workshops
+                  </Link>
+                  <Link
+                    to="/live-sessions"
+                    className="btn-white-ghost btn-sm"
+                  >
+                    Live Schedule
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ── Feature 5: Continue Watching in User Account / Dashboard ── */}
         {continueWatchingItems.length > 0 && (
           <div className="card p-6 mb-8 border-l-4 border-l-canvas-500 shadow-md">
