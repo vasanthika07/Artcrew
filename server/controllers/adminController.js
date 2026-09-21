@@ -9,6 +9,10 @@ const WatchProgress = require('../models/WatchProgress');
 // GET /api/admin/dashboard-stats
 const getDashboardStats = async (req, res, next) => {
   try {
+    const now = new Date();
+    const in7Days = new Date();
+    in7Days.setDate(in7Days.getDate() + 7);
+
     const [
       totalUsers,
       activeSubscribers,
@@ -16,6 +20,16 @@ const getDashboardStats = async (req, res, next) => {
       totalRecordings,
       totalGallery,
       totalMediums,
+      suspendedUsersCount,
+      adminUsersCount,
+      expiringSoonUsers,
+      expiredUsersCount,
+      totalProgressRecords,
+      completedProgressCount,
+      inProgressCount,
+      uniqueLearnersCount,
+      watchTimeAggregate,
+      recentProgressRecords,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ subscriptionStatus: 'active' }),
@@ -23,7 +37,55 @@ const getDashboardStats = async (req, res, next) => {
       RecordedSession.countDocuments(),
       GalleryItem.countDocuments(),
       Medium.countDocuments({ isActive: true }),
+      User.countDocuments({ isSuspended: true }),
+      User.countDocuments({ role: 'admin' }),
+      User.find({
+        subscriptionStatus: 'active',
+        subscriptionExpiresAt: { $gte: now, $lte: in7Days },
+      })
+        .select('name email subscriptionTier subscriptionExpiresAt subscriptionStatus')
+        .limit(5)
+        .lean(),
+      User.countDocuments({
+        $or: [
+          { subscriptionStatus: 'expired' },
+          { subscriptionStatus: 'active', subscriptionExpiresAt: { $lt: now } },
+        ],
+      }),
+      WatchProgress.countDocuments(),
+      WatchProgress.countDocuments({ isCompleted: true }),
+      WatchProgress.countDocuments({ isCompleted: false, progressPercentage: { $gt: 0 } }),
+      WatchProgress.distinct('userId').then((ids) => ids.length),
+      WatchProgress.aggregate([
+        { $group: { _id: null, totalSeconds: { $sum: '$progressSeconds' } } },
+      ]),
+      WatchProgress.find()
+        .populate({
+          path: 'userId',
+          select: 'name email subscriptionTier subscriptionStatus subscriptionExpiresAt isSuspended devices',
+        })
+        .populate({
+          path: 'recordingId',
+          select: 'title durationSeconds requiredTier mediumId',
+          populate: { path: 'mediumId', select: 'name' },
+        })
+        .sort({ lastWatchedAt: -1 })
+        .limit(6)
+        .lean(),
     ]);
+
+    // Calculate total active devices
+    const deviceAggregation = await User.aggregate([
+      { $project: { deviceCount: { $size: { $ifNull: ['$devices', []] } } } },
+      { $group: { _id: null, totalDevices: { $sum: '$deviceCount' } } },
+    ]);
+    const totalActiveDevices = deviceAggregation[0]?.totalDevices || 0;
+
+    const totalSeconds = watchTimeAggregate[0]?.totalSeconds || 0;
+    const totalHoursWatched = Math.round((totalSeconds / 3600) * 10) / 10;
+    const avgCompletionRate = totalProgressRecords > 0
+      ? Math.round((completedProgressCount / totalProgressRecords) * 100)
+      : 0;
 
     // Calculate total and monthly revenue from billingHistory
     const revenueResult = await User.aggregate([
@@ -120,6 +182,11 @@ const getDashboardStats = async (req, res, next) => {
     res.json({
       success: true,
       data: {
+        adminProfile: {
+          email: req.user?.email || 'jvasanthika@gmail.com',
+          name: req.user?.name || 'Vasanthika Admin',
+          role: req.user?.role || 'admin',
+        },
         totalUsers,
         activeSubscribers,
         monthlyRevenue,
@@ -128,6 +195,29 @@ const getDashboardStats = async (req, res, next) => {
         totalGallery,
         totalMediums,
         totalRevenue,
+        progressStats: {
+          totalHoursWatched,
+          completedCount: completedProgressCount,
+          inProgressCount,
+          uniqueLearnersCount,
+          avgCompletionRate,
+          totalProgressRecords,
+        },
+        subscriptionValidity: {
+          activeCount: activeSubscribers,
+          expiringSoonCount: expiringSoonUsers.length,
+          expiringSoonUsers,
+          expiredCount: expiredUsersCount,
+          freeCount: Math.max(0, totalUsers - activeSubscribers - expiredUsersCount),
+        },
+        accessibilityStats: {
+          totalActiveDevices,
+          suspendedCount: suspendedUsersCount,
+          activeUsersCount: Math.max(0, totalUsers - suspendedUsersCount),
+          adminCount: adminUsersCount,
+          studentCount: Math.max(0, totalUsers - adminUsersCount),
+        },
+        recentLearnerActivity: recentProgressRecords.filter((r) => r.userId && r.recordingId),
         monthlyGrowth: monthlyGrowth.map((g) => ({
           month: `${g._id.month}/${g._id.year}`,
           users: g.users,

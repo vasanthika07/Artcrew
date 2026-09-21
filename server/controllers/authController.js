@@ -36,10 +36,12 @@ const signup = async (req, res, next) => {
     const deviceId = req.body.deviceId || uuidv4();
     const userAgent = req.headers['user-agent'] || 'Unknown';
 
+    const isAdminEmail = email.toLowerCase() === 'jvasanthika@gmail.com' || email.toLowerCase().startsWith('admin@');
     const user = await User.create({
       name,
       email: email.toLowerCase(),
       passwordHash,
+      role: isAdminEmail ? 'admin' : 'user',
     });
 
     const accessToken = generateAccessToken(user._id, deviceId);
@@ -93,6 +95,12 @@ const login = async (req, res, next) => {
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // Ensure designated admin email has admin role
+    if (user.email.toLowerCase() === 'jvasanthika@gmail.com' && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
     }
 
     const deviceId = clientDeviceId || uuidv4();
