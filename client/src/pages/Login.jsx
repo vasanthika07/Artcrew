@@ -40,9 +40,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    const cleanEmail = form.email.trim();
+    if (!cleanEmail || !form.password) {
+      setError({ message: 'Please enter both your email address and password.' });
+      return;
+    }
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      await login(cleanEmail, form.password);
       toast.success('Welcome back!');
       navigate(from, { replace: true });
     } catch (err) {

@@ -27,7 +27,10 @@ const signup = async (req, res, next) => {
       return res.status(422).json({ success: false, message: 'Password must be at least 8 characters' });
     }
 
-    const existing = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = name.trim();
+
+    const existing = await User.findOne({ email: cleanEmail });
     if (existing) {
       return res.status(409).json({ success: false, message: 'Email already registered' });
     }
@@ -36,10 +39,10 @@ const signup = async (req, res, next) => {
     const deviceId = req.body.deviceId || uuidv4();
     const userAgent = req.headers['user-agent'] || 'Unknown';
 
-    const isAdminEmail = email.toLowerCase() === 'jvasanthika@gmail.com' || email.toLowerCase().startsWith('admin@');
+    const isAdminEmail = cleanEmail === 'jvasanthika@gmail.com' || cleanEmail.startsWith('admin@');
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: cleanName,
+      email: cleanEmail,
       passwordHash,
       role: isAdminEmail ? 'admin' : 'user',
     });
@@ -87,9 +90,14 @@ const login = async (req, res, next) => {
       return res.status(422).json({ success: false, message: 'Email and password are required' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    if (user.isSuspended) {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact support.' });
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
@@ -105,6 +113,10 @@ const login = async (req, res, next) => {
 
     const deviceId = clientDeviceId || uuidv4();
     const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    if (!Array.isArray(user.devices)) {
+      user.devices = [];
+    }
 
     // Check if this deviceId already exists in user's devices
     const existingDeviceIndex = user.devices.findIndex((d) => d.deviceId === deviceId);
@@ -135,10 +147,11 @@ const login = async (req, res, next) => {
     }
 
     // New device — check device limit
-    if (user.devices.length >= user.maxDevices) {
+    const maxAllowedDevices = user.maxDevices || 2;
+    if (user.devices.length >= maxAllowedDevices) {
       return res.status(403).json({
         success: false,
-        message: `${user.maxDevices} devices are already active. Log out another device to continue.`,
+        message: `${maxAllowedDevices} devices are already active. Log out another device to continue.`,
         code: 'DEVICE_LIMIT_REACHED',
         devices: user.devices.map((d) => ({
           deviceId: d.deviceId,
@@ -150,7 +163,7 @@ const login = async (req, res, next) => {
 
     // Add new device
     const refreshToken = generateRefreshToken(user._id, deviceId);
-    user.devices.push({ deviceId, refreshToken, userAgent, lastActive: new Date() });
+    user.devices.push({ deviceId, refreshToken, userAgent, lastActive: new Date(), createdAt: new Date() });
     await user.save();
 
     const accessToken = generateAccessToken(user._id, deviceId);

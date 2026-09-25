@@ -28,11 +28,20 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    const cleanName = form.name.trim();
+    const cleanEmail = form.email.trim();
+    if (!cleanName || !cleanEmail || !form.password) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
     setLoading(true);
     try {
-      await signup(form.name, form.email, form.password);
-      toast.success(`Welcome to ArtCrew, ${form.name}! Your account is ready.`);
+      await signup(cleanName, cleanEmail, form.password);
+      toast.success(`Welcome to ArtCrew, ${cleanName}! Your account is ready.`);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
